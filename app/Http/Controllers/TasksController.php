@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Task;
+//use App\Task;
 
 class TasksController extends Controller
 {
@@ -14,11 +14,32 @@ class TasksController extends Controller
      */
     public function index()
     {
-        //
-        $tasks = Task::all();
-        return view('tasks.index', [
-            'tasks' => $tasks,
+        
+        $data = [];
+        if (\Auth::check()) { // 認証済みの場合
+            // 認証済みユーザを取得
+            $user = \Auth::user();
+            $task =$user->tasklists()->orderby('created_at','desc')->paginate(10);
+            
+            
+        
+            
+            $data = [
+                'user' => $user,
+                'tasks' => $tasks,
+            ];
+             return view('tasks.index',
+        ['tasks' => $tasks
         ]);
+        }
+            
+       // return view('tasks.index',
+        //['tasks' => $tasks
+        //]);
+        //未ログインの場合ウェルカム場面
+        return view('welcome',
+        //$date
+        );
     }
 
     /**
@@ -45,14 +66,22 @@ class TasksController extends Controller
     public function store(Request $request)
     {   
         $request->validate([
-            'user_id'=>'required',
             'status' => 'required|max:10',
             'content'=> 'required'// 追加
             
         ]);
+        
+        // ☆認証済みユーザ（閲覧者）の投稿として作成（リクエストされた値をもとに作成）
+        $request->user()->tasklists()->create([
+            'content' => $request->content,
+           ]);
+        
+        //ログイン中のユーザーを取得
+        $user = \Auth::user();
+        
         // メッセージを作成
         $task = new Task;
-        $task->user_id = $request->user_id;
+        $task->user_id = $user->id;
         $task->status = $request->status;
         $task->content = $request->content;
         $task->save();
@@ -106,13 +135,11 @@ class TasksController extends Controller
     {   
       
         $request->validate([
-            'user_id'=>'required',
             'status' => 'required|max:10',
             'content' => 'required'
         ]);
        
         $task = Task::findOrFail($id);
-        $task->user_id = $request->user_id;
         $task->content = $request->content;
         $task->status = $request->status;
         $task->save();
@@ -131,8 +158,11 @@ class TasksController extends Controller
     {
           // idの値でメッセージを検索して取得
         $task = Task::findOrFail($id);
-        // メッセージを削除
-        $task->delete();
+        
+         // 認証済みユーザ（閲覧者）がその投稿の所有者である場合は、投稿を削除
+        if (\Auth::id() === $tasklist->user_id) {
+            $tasklist->delete();
+        }
 
         // トップページへリダイレクトさせる
         return redirect('/');

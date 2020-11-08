@@ -11,10 +11,6 @@
             <td>{{ $task->id }}</td>
         </tr>
         <tr>
-            <th>user_id</th>
-            <td>{{ $task->user_id }}</td>
-        </tr>
-        <tr>
             <th>ステータス</th>
             <td>{{ $task->status }}</td>
         </tr>
