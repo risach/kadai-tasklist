@@ -133,7 +133,8 @@ class TasksController extends Controller
         
         if($user->id==$task->user_id){
         // メッセージ詳細ビューでそれを表示
-            return view('tasks.show', [
+            // メッセージ編集ビューでそれを表示
+        return view('tasks.edit', [
             'task' => $task,
         ]);
          }
@@ -143,10 +144,7 @@ class TasksController extends Controller
         
     }
 
-        // メッセージ編集ビューでそれを表示
-        return view('tasks.edit', [
-            'task' => $task,
-        ]);
+      
     }
 
     /**
